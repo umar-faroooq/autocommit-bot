@@ -2,7 +2,7 @@ name: Auto Commit Bot
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Every hour
+    - cron: '0 * * * *'  # every hour
   workflow_dispatch:
 
 jobs:
@@ -10,8 +10,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
+    - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}  # ensures proper auth
+        ref: main  # force correct branch
 
     - name: Set Git config
       run: |
@@ -20,14 +23,15 @@ jobs:
 
     - name: Make changes
       run: |
-        echo "Last updated at $(date -u)" > last_updated.txt
+        echo "Last updated: $(date -u)" > last_updated.txt
 
-    - name: Commit changes
+    - name: Commit & Push changes
       run: |
         git add .
         if git diff-index --quiet HEAD; then
-          echo "No changes to commit."
+          echo "No changes to commit"
         else
           git commit -m "Auto update: $(date -u)"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
-        fi
+          git push origin main
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
