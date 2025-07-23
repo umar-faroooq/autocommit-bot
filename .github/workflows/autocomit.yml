@@ -1,0 +1,33 @@
+name: Auto Commit Bot
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Every hour
+  workflow_dispatch:
+
+jobs:
+  autocommit:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Set Git config
+      run: |
+        git config --global user.name 'AutoCommit Bot'
+        git config --global user.email 'autocommit@users.noreply.github.com'
+
+    - name: Make changes
+      run: |
+        echo "Last updated at $(date -u)" > last_updated.txt
+
+    - name: Commit changes
+      run: |
+        git add .
+        if git diff-index --quiet HEAD; then
+          echo "No changes to commit."
+        else
+          git commit -m "Auto update: $(date -u)"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
+        fi
